@@ -69,6 +69,7 @@ function getRev(cb) {
 }
 function getChattanga(cb) {
     hostname = 'st.chatango.com';
+    mkdirp.sync('src/cfg/nc');
     getRev(function() {
         readData('/h5/gz/r'+rev+'/id.html', function(res) {
             chattangas.forEach(function(owner) {
@@ -76,7 +77,6 @@ function getChattanga(cb) {
                     hostname = 'st.'+owner+'.'+base_chattanga;
             });
             getRev(function() {
-                mkdirp.sync('src/cfg/nc/');
                 cb(hostname);
             });
         });
