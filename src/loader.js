@@ -1,4 +1,4 @@
-local_debug = true;
+local_debug = false;
 /** chrome api */
 function getExtURL(url) { return chrome.extension.getURL(url); }
 function addScript(src, onload) {
@@ -37,13 +37,13 @@ function start_id(cb) {
     if(local_debug)
         start_generic("cgroup", getExtURL("start_id.js"));
     else
-        start_generic("cgroup", getExtURL("https://rawgit.com/EduardoRFS/ChatangoExpansion/master/src/start_id.js"));
+        start_generic("cgroup", "https://rawgit.com/EduardoRFS/ChatangoExpansion/master/src/start_id.js");
 }
 function start_ipmd(cb) {
     if(local_debug)
         start_generic("cpm", getExtURL("start_ipmd.js"));
     else
-        start_generic("cgroup", getExtURL("https://rawgit.com/EduardoRFS/ChatangoExpansion/master/src/start_id.js"));
+        start_generic("cpm", "https://rawgit.com/EduardoRFS/ChatangoExpansion/master/src/start_ipmd.js");
 }
 function rewriteFrame() {
     document.head.innerHTML = "";

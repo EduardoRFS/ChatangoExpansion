@@ -10,7 +10,6 @@ allSeeCounter();
 function userFilter(event) {
     var msg =  new chatango.messagedata.GroupMessageData(event.message);
     var user = msg.name_.toLowerCase();
-    console.log(user);
     if (msg.userType_ != chatango.users.User.UserType.SELLER && anon_state)
         return true;
     if(user == "EduardoRFS".toLowerCase())

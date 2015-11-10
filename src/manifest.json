@@ -25,7 +25,7 @@
   "content_security_policy": "script-src 'self' https://rawgit.com; object-src 'self'",
   "browser_action": {
     "default_icon": "favicon.png",
-    "default_popup": "popup.html"
+    "default_popup": "popup_loader.html"
   },
   "web_accessible_resources": ["js/gz/*", "start_ipmd.js", "start_id.js", "cfg/nc/r.json", "mods.js", "popup.js"]
 }
