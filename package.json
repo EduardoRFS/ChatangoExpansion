@@ -1,0 +1,11 @@
+{
+  "name": "ChattangaDownloader",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "update.js"
+  },
+  "dependencies": {
+    "mkdirp": "*"
+  }
+}
