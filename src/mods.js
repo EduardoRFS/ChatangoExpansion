@@ -56,3 +56,11 @@ function enableUnusedChannels() {
 }
 linkInternalModules();
 enableUnusedChannels();
+function showTimeInAllMessages() {
+    chatango.group.GroupMessage.prototype.isElementInMessageText_ = function(el) {
+        var msgEl = goog.dom.getAncestorByClass(el, "msg");
+        var inIP = goog.dom.getAncestorByClass(el, "msg-ip");
+        return true;
+    };
+}
+showTimeInAllMessages();
