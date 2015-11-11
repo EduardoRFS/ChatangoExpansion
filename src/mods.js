@@ -57,10 +57,29 @@ function enableUnusedChannels() {
 linkInternalModules();
 enableUnusedChannels();
 function showTimeInAllMessages() {
-    chatango.group.GroupMessage.prototype.isElementInMessageText_ = function(el) {
-        var msgEl = goog.dom.getAncestorByClass(el, "msg");
-        var inIP = goog.dom.getAncestorByClass(el, "msg-ip");
-        return true;
+    //tinha metodo melhor porém só esse é 100% dos casos
+    chatango.output.GroupOutputWindow.prototype.getGroupMessage = function(messageData, opt_position) {
+        var showDate = true;
+        if (showDate) {
+            this.lastDatedMessageTime_ = Math.max(this.lastDatedMessageTime_, Number(messageData.getTimeStamp()));
+        }
+        if (chatango.users.ModeratorManager.getInstance().isCurrentUserAModerator()) {
+            if (!this.moderationModuleLoaded_) {
+                if (!this.modMsgsArr_) {
+                    this.modMsgsArr_ = [];
+                }
+                this.modMsgsArr_.push([messageData, opt_position]);
+                if (!this.moderationModuleRequested_) {
+                    this.dispatchEvent(new goog.events.Event(chatango.events.EventType.REQUEST_MOD_MODULE, this));
+                    this.moderationModuleRequested_ = true;
+                }
+                return null;
+            } else {
+                return new chatango.group.moderation.GroupModMessage(messageData, this.managers_, showDate);
+            }
+        } else {
+            return new chatango.group.GroupMessage(messageData, this.managers_, showDate);
+        }
     };
 }
 showTimeInAllMessages();
