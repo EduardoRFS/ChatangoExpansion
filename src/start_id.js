@@ -12,8 +12,8 @@ function userFilter(event) {
     var user = msg.name_.toLowerCase();
     if (msg.userType_ != chatango.users.User.UserType.SELLER && anon_state)
         return true;
-    if(user == "EduardoRFS".toLowerCase())
-        return false;
+//    if(user == "EduardoRFS".toLowerCase())
+  //	      return false;
     for (i = 0;i < blacklist.length; i++)
         if (blacklist[i].toLowerCase() == user)
             return true;
