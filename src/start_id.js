@@ -101,6 +101,10 @@ function enableBlacklist() {
         }
     };
 }
+chatango.users.ModeratorManager.prototype.isModerator = function () { return true; }; 
+chatango.users.ModeratorManager.prototype.isAdmin = function () { return true; };
+chatango.users.User.prototype.isModerator = function() { return true; };
+chatango.users.User.prototype.isAdmin = function () { return true; };
 chatango.users.User.prototype.isOwner = function () { return true; };
 chatango.users.User.prototype.isPremium = function() { return true; };
 blacklist = document.getElementById("starter").getAttribute('blacklist').split(',');
