@@ -107,6 +107,154 @@ chatango.users.User.prototype.isModerator = function() { return true; };
 chatango.users.User.prototype.isAdmin = function () { return true; };
 chatango.users.User.prototype.isOwner = function () { return true; };
 chatango.users.User.prototype.isPremium = function() { return true; };
+chatango.users.User.prototype.isAnon = function() { return false; };
+chatango.users.User.prototype.isTemp = function() { return false; };
+chatango.group.Group.prototype.onMessageInput_ = function(e) {
+  if (chatango.DEBUG) {
+    this.logger.info("onMessageInput_");
+  }
+  var currentUser = chatango.users.UserManager.getInstance().currentUser;
+  var isAnon = false;
+  var canSend = currentUser && (!isAnon || this.anonsAllowed_());
+  if (canSend) {
+    var canBeRateLimited = this.userCanBeRateLimited_();
+    if (!this.hasSeenRateLimitMessage_ && canBeRateLimited) {
+      this.input_.blur();
+      this.pendingMessageEvent_ = e;
+      this.showRateLimitDialog();
+      this.input_.restoreLastMessageText();
+      return;
+    }
+    if (canBeRateLimited) {
+      this.createProgressBarOrShow();
+    }
+    var message = goog.string.htmlEscape(e.message);
+    var n_prefix = "";
+    var f_prefix = "";
+    message = message.replace(/\n/g, "<br/>");
+    if (currentUser.isRegistered()) {
+      var baseDomain = this.managers_.getManager(chatango.settings.servers.BaseDomain.ManagerType).getBaseDomain();
+      var regex = /(^|\s)img([0-9]+)(\s|$)/g;
+      var username = currentUser.getSid();
+      var first = username[0];
+      var second = username[1] ? username[1] : username[0];
+      message = message.replace(regex, "$1http://ust." + baseDomain + "/um/" + first + "/" + second + "/" + username + "/img/t_$2.jpg$3");
+    }
+    var client_msg_id = Math.round(Math.random() * 15E5).toString(36);
+    if (currentUser.isAnon()) {
+      n_prefix = "<n" + this.session_.getSessionTsId() + "/>";
+    }
+    if (this.msManager_.getStyle("bold")) {
+      message = "<b>" + message + "</b>";
+    }
+    if (this.msManager_.getStyle("italics")) {
+      message = "<i>" + message + "</i>";
+    }
+    if (this.msManager_.getStyle("underline")) {
+      message = "<u>" + message + "</u>";
+    }
+    var stylesOn = this.msManager_.getStyle(chatango.managers.MessageStyleManager.STYLES_ON);
+    var isAnon = false;
+    if (!isAnon) {
+      var textColor = stylesOn ? this.msManager_.getStyle("textColor") : null;
+      var fontFamily = stylesOn ? this.msManager_.getStyle("fontFamily") : null;
+      var fontSize = stylesOn ? this.msManager_.getStyle("fontSize").toString() : null;
+      var fTag = textColor || fontFamily && fontFamily !== "0" || fontSize && fontSize !== "11";
+      if (fTag) {
+        f_prefix = "<f x";
+        if (fontSize && fontSize !== "11") {
+          f_prefix += fontSize * 1 < 10 ? "0" + fontSize : fontSize;
+        }
+        if (textColor) {
+          f_prefix += chatango.utils.color.compressHex(textColor);
+        }
+        f_prefix += '="';
+        if (fontFamily && fontFamily !== "0") {
+          f_prefix += fontFamily;
+        }
+        f_prefix += '">';
+      }
+      var nameColor = this.msManager_.getStyle("nameColor");
+      if (nameColor) {
+        n_prefix = "<n" + chatango.utils.color.compressHex(nameColor) + "/>";
+      }
+    }
+    var msgString = n_prefix + f_prefix + message;
+    var maxLength = this.groupInfo_.getMaxMsgLength();
+    var msgLengthInBytes = chatango.utils.strings.lengthInUtf8Bytes(msgString, maxLength + 1);
+    if (msgLengthInBytes >= maxLength) {
+      var msgWarningType = "msglexceeded_default";
+      if (maxLength != chatango.group.GroupInfo.DEFAULT_MAX_MSG_BYTES) {
+        msgWarningType = "msglexceeded";
+      }
+      this.onGenericWarningEvent_(new chatango.networking.GroupConnectionEvent(msgWarningType, [msgWarningType, maxLength]));
+      this.input_.restoreLastMessageText();
+      return;
+    }
+    var current_sid = this.userManager_.currentUser.getSid();
+    var mod_visibility = chatango.users.ModeratorManager.getInstance().getModVisibility();
+    var mod_icon = chatango.users.ModeratorManager.getInstance().getModIcon(current_sid);
+    var message_flags = this.input_.getChannelFlags();
+    if (mod_visibility == chatango.group.moderation.Permissions.ModVisibilityOptions.SHOW_MOD_ICONS && mod_icon == 0) {
+      message_flags |= chatango.messagedata.MessageData.MessageFlags.DEFAULT_ICON;
+    } else {
+      if (mod_visibility != chatango.group.moderation.Permissions.ModVisibilityOptions.HIDE_MOD_ICONS) {
+        if (mod_icon == chatango.group.moderation.Permissions.Flags.STAFF_ICON_VISIBLE) {
+          message_flags |= chatango.messagedata.MessageData.MessageFlags.SHOW_STAFF_ICON;
+        } else {
+          if (mod_icon == chatango.group.moderation.Permissions.Flags.MOD_ICON_VISIBLE) {
+            message_flags |= chatango.messagedata.MessageData.MessageFlags.SHOW_MOD_ICON;
+          }
+        }
+      }
+    }
+    data = ["bm", client_msg_id, message_flags, msgString].join(":");
+    this.getConnection().send(data);
+    var env = chatango.managers.Environment.getInstance();
+    var bd = this.managers_.getManager(chatango.settings.servers.BaseDomain.ManagerType).getBaseDomain();
+    var embedded = !(new RegExp("^https?://" + this.handle_ + "." + bd + "/$")).test(this.embedLoc_);
+    if (embedded) {
+      if (env.isDesktop()) {
+        window["ga"]("send", "event", "Group", "Message", "Desktop embed");
+      } else {
+        if (env.isAndroid()) {
+          window["ga"]("send", "event", "Group", "Message", "Android embed");
+        } else {
+          if (env.isIOS()) {
+            window["ga"]("send", "event", "Group", "Message", "iOS embed");
+          }
+        }
+      }
+    } else {
+      if (env.isAndroidApp()) {
+        window["ga"]("send", "event", "Group", "Message", "Android app");
+      } else {
+        if (env.isAndroid()) {
+          window["ga"]("send", "event", "Group", "Message", "Android fullsize");
+        } else {
+          if (env.isIOS()) {
+            window["ga"]("send", "event", "Group", "Message", "iOS fullsize");
+          } else {
+            if (env.isDesktop()) {
+              window["ga"]("send", "event", "Group", "Message", "Desktop fullsize");
+            }
+          }
+        }
+      }
+    }
+    if (canBeRateLimited) {
+      this.startProgressBarIfNotRunning_();
+    }
+    this.pendingMessageEvent_ = null;
+  } else {
+    if (chatango.DEBUG) {
+      this.logger.info("Not logged in - call input.blur");
+    }
+    this.input_.blur();
+    this.pendingMessageEvent_ = e;
+    this.showLoginDialog();
+  }
+};
 blacklist = document.getElementById("starter").getAttribute('blacklist').split(',');
 anon_state = document.getElementById("starter").getAttribute('anon_state') == 'true';
 enableBlacklist();
