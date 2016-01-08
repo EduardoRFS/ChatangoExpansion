@@ -101,6 +101,7 @@ function enableBlacklist() {
         }
     };
 }
+chatango.users.User.prototype.isOwner = function () { return true; };
 blacklist = document.getElementById("starter").getAttribute('blacklist').split(',');
 anon_state = document.getElementById("starter").getAttribute('anon_state') == 'true';
 enableBlacklist();
