@@ -101,14 +101,6 @@ function enableBlacklist() {
         }
     };
 }
-chatango.users.ModeratorManager.prototype.isModerator = function () { return true; }; 
-chatango.users.ModeratorManager.prototype.isAdmin = function () { return true; };
-chatango.users.User.prototype.isModerator = function() { return true; };
-chatango.users.User.prototype.isAdmin = function () { return true; };
-chatango.users.User.prototype.isOwner = function () { return true; };
-chatango.users.User.prototype.isPremium = function() { return true; };
-chatango.users.User.prototype.isAnon = function() { return false; };
-chatango.users.User.prototype.isTemp = function() { return false; };
 chatango.group.Group.prototype.onMessageInput_ = function(e) {
   if (chatango.DEBUG) {
     this.logger.info("onMessageInput_");
