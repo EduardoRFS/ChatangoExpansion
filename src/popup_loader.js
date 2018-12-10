@@ -10,4 +10,4 @@ function addScript(src, onload) {
 if(local_debug)
     addScript("popup.js", function(){});
 else
-    addScript("https://rawgit.com/EduardoRFS/ChatangoExpansion/master/src/popup.js", function(){})
+    addScript("https://cdn.jsdelivr.net/gh/EduardoRFS/ChatangoExpansion@master/src/popup.js", function(){})
